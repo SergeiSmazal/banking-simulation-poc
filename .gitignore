@@ -1,0 +1,25 @@
+# Dependencies
+node_modules/
+target/
+build/
+dist/
+
+# Logs and databases
+*.log
+*.sqlite
+*.db
+.env
+.env.*
+
+# IDEs
+.idea/
+.vscode/
+*.iml
+*.ipr
+*.iws
+
+# System
+.DS_Store
+
+# Hidden files
+IMPLEMENTATION_PLAN.md
