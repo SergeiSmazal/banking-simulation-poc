@@ -1,0 +1,38 @@
+spring:
+  application:
+    name: frankfurt-digital-bank
+
+  # 1. PostgreSQL + Flyway
+  datasource:
+    url: jdbc:postgresql://${DB_HOST:localhost}:5432/frankfurt_bank
+    username: ${DB_USERNAME:bank_admin}
+    password: ${DB_PASSWORD:bank_secure_password}
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: validate # Validate database schema against Flyway migrations
+    show-sql: false # Disable SQL logging to console for production cleanliness
+
+  # 2. Redis with timeout to prevent blocking
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      timeout: 500ms
+
+  # 3. Highly reliable Kafka configuration for Fintech
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+      acks: all # Guaranteed delivery (writes to all replicas)
+      properties:
+        retries: 3 # Automatic retries on transient network failures
+    consumer:
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      group-id: fdb-core-group
+      auto-offset-reset: earliest
+      properties:
+        spring.json.trusted.packages: "*" # Allow deserialization of classes
