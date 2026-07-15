@@ -20,7 +20,7 @@ spring:
       port: ${REDIS_PORT:6379}
       timeout: 500ms
 
-  # 3. Highly reliable Kafka configuration for Fintech
+    # 3. Highly reliable Kafka configuration for Fintech
   kafka:
     bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
     producer:
@@ -36,3 +36,13 @@ spring:
       auto-offset-reset: earliest
       properties:
         spring.json.trusted.packages: "*" # Allow deserialization of classes
+
+  # 4. Actuator configuration for health monitoring
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      show-details: always
