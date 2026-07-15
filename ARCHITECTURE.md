@@ -9,19 +9,15 @@ A banking transaction simulator that generates load "on the fly" and demonstrate
 in practice, how real distributed-systems problems are solved: concurrent access
 to account balances, reliable message delivery, caching, and anomaly detection.
 
-The frontend is intentionally thin (1-2 dashboard pages), all the complexity
-lives in the backend — this is a deliberate choice so the interview conversation
-is about architecture, not CSS.
-
 ## 2. Architecture Map
 
 ```
 ┌─────────────┐      ①  POST /transfer        ┌──────────────────────┐
-│   Next.js    │ ─────────────────────────────▶│   Spring Boot API     │
-│  Dashboard   │                                │   (Producer)          │
-└─────────────┘◀───────── 202 Accepted ────────└──────────┬───────────┘
-                                                            │ ② rate-limit check
-                                                            ▼
+│   Next.js   │ ─────────────────────────────▶ │   Spring Boot API    │
+│  Dashboard  │                                │   (Producer)         │
+└─────────────┘ ◀───────── 202 Accepted ────── └───────────┬──────────┘
+                                                           │ ② rate-limit check
+                                                           ▼
                                                      ┌─────────────┐
                                                      │    Redis    │
                                                      │ (rate limit,│
@@ -34,10 +30,10 @@ is about architecture, not CSS.
                                                             ▼
                                                      ┌─────────────┐
                                                      │    Kafka    │
-                                                     │  topic:      │
-                                                     │ transactions │
-                                                     │ (partition   │
-                                                     │  key=accId)  │
+                                                     │  topic:     │
+                                                     │ transactions│
+                                                     │ (partition  │
+                                                     │  key=accId) │
                                                      └──────┬──────┘
                               ┌─────────────────────────────┼─────────────────────┐
                               ▼                             ▼                     ▼
@@ -47,7 +43,7 @@ is about architecture, not CSS.
                      │ (idempotent,    │          │ (separate        │   │ → alert via     │
                      │ outbox pattern) │          │  consumer group) │   │  Redis Pub/Sub  │
                      └────────┬────────┘          └────────┬─────────┘   └─────────────────┘
-                              ▼                             ▼
+                              ▼                            ▼
                      ┌─────────────────┐          ┌──────────────────┐
                      │  PostgreSQL     │          │  Redis Pub/Sub   │
                      │  (transactions, │          │  → WebSocket to  │
