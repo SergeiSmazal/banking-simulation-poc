@@ -42,10 +42,10 @@ is about architecture, not CSS.
                               ┌─────────────────────────────┼─────────────────────┐
                               ▼                             ▼                     ▼
                      ┌─────────────────┐          ┌──────────────────┐   ┌─────────────────┐
-                     │ Consumer:        │          │ Consumer:         │   │ Spring AI:       │
-                     │ Processor        │          │ Anomaly Detector   │   │ pattern analysis │
-                     │ (idempotent,     │          │ (separate         │   │ → alert via      │
-                     │ outbox pattern)  │          │  consumer group)  │   │  Redis Pub/Sub    │
+                     │ Consumer:       │          │ Consumer:        │   │ Spring AI:      │
+                     │ Processor       │          │ Anomaly Detector │   │ pattern analysis│
+                     │ (idempotent,    │          │ (separate        │   │ → alert via     │
+                     │ outbox pattern) │          │  consumer group) │   │  Redis Pub/Sub  │
                      └────────┬────────┘          └────────┬─────────┘   └─────────────────┘
                               ▼                             ▼
                      ┌─────────────────┐          ┌──────────────────┐
