@@ -1,6 +1,6 @@
 # 💳 Fintech Transaction Simulator
 
-A portfolio project: a banking transaction simulator that demonstrates
+A project: a banking transaction simulator that demonstrates
 production-grade fintech system architecture — message queues, caching,
 data consistency, and real-time AI anomaly monitoring.
 
