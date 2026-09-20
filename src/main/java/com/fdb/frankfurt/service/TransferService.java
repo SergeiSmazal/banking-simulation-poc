@@ -13,6 +13,7 @@ import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Objects;
 import java.util.UUID;
 
 @Service
@@ -41,7 +42,7 @@ public class TransferService {
         transaction.setAmount(request.getAmount());
         transaction.setStatus("PENDING");
         transaction.setIdempotencyKey(UUID.randomUUID().toString());
-        Transaction savedTransaction = transactionRepository.save(transaction);
+        Transaction savedTransaction = Objects.requireNonNull(transactionRepository.save(transaction));
 
         // 3. Create Outbox event
         OutboxEvent outboxEvent = new OutboxEvent();
