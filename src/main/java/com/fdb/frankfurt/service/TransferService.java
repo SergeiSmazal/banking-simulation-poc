@@ -41,7 +41,7 @@ public class TransferService {
         transaction.setAmount(request.getAmount());
         transaction.setStatus("PENDING");
         transaction.setIdempotencyKey(UUID.randomUUID().toString());
-        @NonNull Transaction savedTransaction = transactionRepository.save(transaction);
+        Transaction savedTransaction = transactionRepository.save(transaction);
 
         // 3. Create Outbox event
         OutboxEvent outboxEvent = new OutboxEvent();
