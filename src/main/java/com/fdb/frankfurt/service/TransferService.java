@@ -28,7 +28,8 @@ public class TransferService {
     @Transactional
     public void createTransfer(TransferRequest request) {
         // 1. Validate accounts exist
-        if (!accountRepository.existsById(request.getFromAccountId()) ||
+        if (request.getFromAccountId() == null || request.getToAccountId() == null ||
+            !accountRepository.existsById(request.getFromAccountId()) ||
             !accountRepository.existsById(request.getToAccountId())) {
             throw new IllegalArgumentException("Account not found");
         }

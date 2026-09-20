@@ -25,7 +25,7 @@ public class OutboxPublisher {
     public void publishEvents() {
         // In a real system, you'd use pagination or LIMIT to avoid loading too many events at once
         List<OutboxEvent> unprocessedEvents = outboxRepository.findAll().stream()
-                .filter(event -> event.getProcessedAt() == null)
+                .filter(event -> event != null && event.getProcessedAt() == null)
                 .toList();
 
         for (OutboxEvent event : unprocessedEvents) {
