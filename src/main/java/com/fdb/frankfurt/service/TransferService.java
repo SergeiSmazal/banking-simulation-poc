@@ -9,10 +9,10 @@ import com.fdb.frankfurt.repository.OutboxRepository;
 import com.fdb.frankfurt.repository.TransactionRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
+import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.OffsetDateTime;
 import java.util.UUID;
 
 @Service
@@ -26,7 +26,7 @@ public class TransferService {
 
     @SneakyThrows
     @Transactional
-    public void createTransfer(TransferRequest request) {
+    public void createTransfer(@NonNull TransferRequest request) {
         // 1. Validate accounts exist
         if (request.getFromAccountId() == null || request.getToAccountId() == null ||
             !accountRepository.existsById(request.getFromAccountId()) ||
@@ -41,12 +41,12 @@ public class TransferService {
         transaction.setAmount(request.getAmount());
         transaction.setStatus("PENDING");
         transaction.setIdempotencyKey(UUID.randomUUID().toString());
-        transactionRepository.save(transaction);
+        @NonNull Transaction savedTransaction = transactionRepository.save(transaction);
 
         // 3. Create Outbox event
         OutboxEvent outboxEvent = new OutboxEvent();
         outboxEvent.setId(UUID.randomUUID());
-        outboxEvent.setAggregateId(transaction.getId().toString());
+        outboxEvent.setAggregateId(savedTransaction.getId().toString());
         outboxEvent.setEventType("TRANSFER_CREATED");
         outboxEvent.setPayload(objectMapper.writeValueAsString(request));
         outboxRepository.save(outboxEvent);
