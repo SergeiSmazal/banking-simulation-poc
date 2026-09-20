@@ -28,28 +28,44 @@ public class TransferService {
     @SneakyThrows
     @Transactional
     public void createTransfer(@NonNull TransferRequest request) {
+        if (request == null) {
+            throw new IllegalArgumentException("request");
+        }
+        TransferRequest nonNullRequest = request;
+
         // 1. Validate accounts exist
-        if (request.getFromAccountId() == null || request.getToAccountId() == null ||
-            !accountRepository.existsById(request.getFromAccountId()) ||
-            !accountRepository.existsById(request.getToAccountId())) {
+        if (nonNullRequest.getFromAccountId() == null || nonNullRequest.getToAccountId() == null ||
+            !accountRepository.existsById(nonNullRequest.getFromAccountId()) ||
+            !accountRepository.existsById(nonNullRequest.getToAccountId())) {
             throw new IllegalArgumentException("Account not found");
         }
 
         // 2. Create Transaction record
-        Transaction transaction = new Transaction();
-        transaction.setId(UUID.randomUUID());
-        transaction.setAccountId(request.getFromAccountId());
-        transaction.setAmount(request.getAmount());
-        transaction.setStatus("PENDING");
-        transaction.setIdempotencyKey(UUID.randomUUID().toString());
-        Transaction savedTransaction = Objects.requireNonNull(transactionRepository.save(transaction));
+        Transaction savedTransaction = transactionRepository.save(buildTransaction(nonNullRequest));
+        if (savedTransaction == null) {
+            throw new IllegalStateException("savedTransaction");
+        }
 
         // 3. Create Outbox event
         OutboxEvent outboxEvent = new OutboxEvent();
         outboxEvent.setId(UUID.randomUUID());
         outboxEvent.setAggregateId(savedTransaction.getId().toString());
         outboxEvent.setEventType("TRANSFER_CREATED");
-        outboxEvent.setPayload(objectMapper.writeValueAsString(request));
+        outboxEvent.setPayload(objectMapper.writeValueAsString(nonNullRequest));
         outboxRepository.save(outboxEvent);
+    }
+
+    private Transaction buildTransaction(@NonNull TransferRequest request) {
+        if (request == null) {
+            throw new IllegalArgumentException("request");
+        }
+        TransferRequest nonNullRequest = request;
+        Transaction transaction = new Transaction();
+        transaction.setId(UUID.randomUUID());
+        transaction.setAccountId(nonNullRequest.getFromAccountId());
+        transaction.setAmount(nonNullRequest.getAmount());
+        transaction.setStatus("PENDING");
+        transaction.setIdempotencyKey(UUID.randomUUID().toString());
+        return transaction;
     }
 }
