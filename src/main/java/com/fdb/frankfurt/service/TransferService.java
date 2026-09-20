@@ -35,16 +35,16 @@ public class TransferService {
         }
 
         // 2. Create Transaction record
-        Transaction transaction = new Transaction();
+        @NonNull Transaction transaction = new Transaction();
         transaction.setId(UUID.randomUUID());
         transaction.setAccountId(request.getFromAccountId());
         transaction.setAmount(request.getAmount());
         transaction.setStatus("PENDING");
         transaction.setIdempotencyKey(UUID.randomUUID().toString());
-        Transaction savedTransaction = transactionRepository.save(transaction);
+        @NonNull Transaction savedTransaction = transactionRepository.save(transaction);
 
         // 3. Create Outbox event
-        OutboxEvent outboxEvent = new OutboxEvent();
+        @NonNull OutboxEvent outboxEvent = new OutboxEvent();
         outboxEvent.setId(UUID.randomUUID());
         outboxEvent.setAggregateId(savedTransaction.getId().toString());
         outboxEvent.setEventType("TRANSFER_CREATED");
