@@ -25,23 +25,28 @@ public class OutboxPublisher {
     public void publishEvents() {
         // In a real system, you'd use pagination or LIMIT to avoid loading too many events at once
         List<OutboxEvent> unprocessedEvents = outboxRepository.findAll().stream()
-                .filter(event -> event.getProcessedAt() == null)
+                .filter(event -> event != null && event.getProcessedAt() == null)
                 .toList();
 
         for (OutboxEvent event : unprocessedEvents) {
             log.info("Publishing event: {}", event.getId());
             
-            // Assuming the aggregateId is the transactionId, and we use it as the Kafka key
-            kafkaTemplate.send("transactions", event.getAggregateId(), event.getPayload())
-                    .whenComplete((result, ex) -> {
-                        if (ex == null) {
-                            event.setProcessedAt(OffsetDateTime.now());
-                            outboxRepository.save(event);
-                            log.info("Event published successfully: {}", event.getId());
-                        } else {
-                            log.error("Failed to publish event: {}", event.getId(), ex);
-                        }
-                    });
+            String aggregateId = event.getAggregateId();
+            String payload = event.getPayload();
+            if (aggregateId != null && payload != null) {
+                kafkaTemplate.send("transactions", aggregateId, payload)
+                        .whenComplete((result, ex) -> {
+                            if (ex == null) {
+                                event.setProcessedAt(OffsetDateTime.now());
+                                outboxRepository.save(event);
+                                log.info("Event published successfully: {}", event.getId());
+                            } else {
+                                log.error("Failed to publish event: {}", event.getId(), ex);
+                            }
+                        });
+            } else {
+                log.error("Missing aggregateId or payload for event: {}", event.getId());
+            }
         }
     }
 }
