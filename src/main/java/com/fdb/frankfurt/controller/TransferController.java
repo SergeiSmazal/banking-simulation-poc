@@ -4,6 +4,7 @@ import com.fdb.frankfurt.dto.TransferRequest;
 import com.fdb.frankfurt.service.TransferService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.lang.NonNull;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -20,7 +21,14 @@ public class TransferController {
 
     @PostMapping
     public ResponseEntity<String> createTransfer(@Valid @RequestBody @NonNull TransferRequest request) {
-        transferService.createTransfer(request);
-        return ResponseEntity.accepted().body("Transfer request received and stored in Outbox");
+        try {
+            transferService.createTransfer(request);
+            return ResponseEntity.accepted().body("Transfer request received and stored in Outbox");
+        } catch (RuntimeException e) {
+            if ("TOO_MANY_REQUESTS".equals(e.getMessage())) {
+                return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS).body("Rate limit exceeded");
+            }
+            throw e;
+        }
     }
 }

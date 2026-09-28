@@ -1,19 +1,20 @@
 package com.fdb.frankfurt.dto;
 
 import jakarta.validation.constraints.NotNull;
+import lombok.AllArgsConstructor;
 import lombok.Data;
-import org.springframework.lang.NonNull;
+import lombok.NoArgsConstructor;
 import java.math.BigDecimal;
 import java.util.UUID;
 
 @Data
+@NoArgsConstructor
+@AllArgsConstructor
 public class TransferRequest {
     @NotNull
-    @NonNull
     private UUID fromAccountId;
     
     @NotNull
-    @NonNull
     private UUID toAccountId;
     
     @NotNull

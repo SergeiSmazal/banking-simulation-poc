@@ -9,10 +9,12 @@ import com.fdb.frankfurt.repository.OutboxRepository;
 import com.fdb.frankfurt.repository.TransactionRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Duration;
 import java.util.UUID;
 
 @Service
@@ -22,11 +24,23 @@ public class TransferService {
     private final AccountRepository accountRepository;
     private final TransactionRepository transactionRepository;
     private final OutboxRepository outboxRepository;
+    private final StringRedisTemplate stringRedisTemplate;
     private final ObjectMapper objectMapper;
 
     @SneakyThrows
     @Transactional
+    @SuppressWarnings("null")
     public void createTransfer(@NonNull TransferRequest request) {
+        // 0. Rate limiting check
+        String rateLimitKey = "rate_limit:" + request.getFromAccountId();
+        Long count = stringRedisTemplate.opsForValue().increment(rateLimitKey);
+        if (count != null && count == 1) {
+            stringRedisTemplate.expire(rateLimitKey, Duration.ofMinutes(1));
+        }
+        if (count != null && count > 20) {
+            throw new RuntimeException("TOO_MANY_REQUESTS");
+        }
+
         // 1. Validate accounts exist
         if (request.getFromAccountId() == null || request.getToAccountId() == null ||
             !accountRepository.existsById(request.getFromAccountId()) ||
@@ -35,13 +49,13 @@ public class TransferService {
         }
 
         // 2. Create Transaction record
-        Transaction savedTransaction = new Transaction();
-        savedTransaction.setId(UUID.randomUUID());
-        savedTransaction.setAccountId(request.getFromAccountId());
-        savedTransaction.setAmount(request.getAmount());
-        savedTransaction.setStatus("PENDING");
-        savedTransaction.setIdempotencyKey(UUID.randomUUID().toString());
-        savedTransaction = transactionRepository.save(savedTransaction);
+        Transaction transaction = new Transaction();
+        transaction.setId(UUID.randomUUID());
+        transaction.setAccountId(request.getFromAccountId());
+        transaction.setAmount(request.getAmount());
+        transaction.setStatus("PENDING");
+        transaction.setIdempotencyKey(UUID.randomUUID().toString());
+        Transaction savedTransaction = transactionRepository.save(transaction);
 
         // 3. Create Outbox event
         OutboxEvent outboxEvent = new OutboxEvent();
