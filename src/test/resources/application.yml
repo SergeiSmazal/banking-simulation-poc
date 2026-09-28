@@ -1,0 +1,5 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5433/frankfurt_bank
+    username: bank_admin
+    password: bank_secure_password
