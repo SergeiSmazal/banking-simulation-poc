@@ -158,4 +158,24 @@ public class TransactionProcessorListenerTest {
         verify(transactionRepository, times(1)).save(tx);
         verify(accountRepository, never()).save(fromAcc);
     }
+
+    @Test
+    public void testConsumerProcessingFailureThrowsException() throws Exception {
+        UUID txId = UUID.randomUUID();
+        UUID fromId = UUID.randomUUID();
+        UUID toId = UUID.randomUUID();
+
+        TransferRequest request = new TransferRequest(fromId, toId, new BigDecimal("100.00"));
+        String payload = objectMapper.writeValueAsString(request);
+
+        when(valueOperations.setIfAbsent(anyString(), anyString(), any())).thenReturn(true);
+        when(transactionRepository.findById(txId)).thenThrow(new RuntimeException("DB Connection Error"));
+
+        org.junit.jupiter.api.Assertions.assertThrows(RuntimeException.class, () -> {
+            transactionProcessorListener.consumeTransaction(payload, txId.toString(), acknowledgment);
+        });
+
+        verify(stringRedisTemplate, times(1)).delete("processed:" + txId);
+        verify(acknowledgment, never()).acknowledge();
+    }
 }
