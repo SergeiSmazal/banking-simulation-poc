@@ -2,7 +2,7 @@
 
 A project: a banking transaction simulator that demonstrates
 production-grade fintech system architecture — message queues, caching,
-data consistency, and real-time AI anomaly monitoring.
+data consistency, and real-time rule-based anomaly monitoring.
 
 For the full architecture writeup and rationale behind each decision, see
 [`docs/ARCHITECTURE.md`](./docs/ARCHITECTURE.md).
@@ -14,7 +14,7 @@ For the full architecture writeup and rationale behind each decision, see
 - **Messaging:** Apache Kafka (KRaft)
 - **Cache / Lock / Pub-Sub:** Redis 7
 - **DB:** PostgreSQL 16
-- **AI:** Spring AI (anomaly detection in the transaction stream)
+- **Anomaly Detection:** Rule-based heuristics (velocity and high-amount checks) with Redis Pub/Sub
 
 ## What This Project Demonstrates
 
@@ -24,7 +24,7 @@ For the full architecture writeup and rationale behind each decision, see
 - API-level rate limiting (token bucket in Redis)
 - Dead Letter Queue for messages that fail processing
 - Kafka topic partitioning by `accountId` to guarantee ordering
-- Anomaly detection via Spring AI + live alerts over WebSocket
+- Rule-based anomaly detection via Kafka consumer + live alerts over Redis Pub/Sub
 
 ## Quick Start
 
