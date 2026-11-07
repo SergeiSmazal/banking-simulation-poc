@@ -42,6 +42,14 @@ public class SimulatorService {
         return enabled.get();
     }
 
+    public void toggle() {
+        if (enabled.get()) {
+            stop();
+        } else {
+            start();
+        }
+    }
+
     @Scheduled(fixedDelay = 2000)
     @Transactional
     public void simulate() {
