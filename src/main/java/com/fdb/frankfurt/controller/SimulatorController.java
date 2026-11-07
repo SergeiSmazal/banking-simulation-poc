@@ -3,7 +3,7 @@ package com.fdb.frankfurt.controller;
 import com.fdb.frankfurt.service.SimulatorService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.lang.NonNull;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -37,8 +37,8 @@ public class SimulatorController {
         return ResponseEntity.ok("Simulator started");
     }
 
-    @org.springframework.web.bind.annotation.GetMapping("/status")
-    public ResponseEntity<@NonNull String> status() {
+    @GetMapping("/status")
+    public ResponseEntity<String> status() {
         return ResponseEntity.ok(simulatorService.isEnabled() ? "RUNNING" : "STOPPED");
     }
 }
