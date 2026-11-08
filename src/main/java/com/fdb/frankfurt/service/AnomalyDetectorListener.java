@@ -4,7 +4,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fdb.frankfurt.dto.AnomalyAlert;
 import com.fdb.frankfurt.dto.TransferRequest;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.support.KafkaHeaders;
@@ -20,8 +21,9 @@ import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
-@Slf4j
 public class AnomalyDetectorListener {
+
+    private static final Logger log = LoggerFactory.getLogger(AnomalyDetectorListener.class);
 
     private final StringRedisTemplate stringRedisTemplate;
     private final ObjectMapper objectMapper;
@@ -104,7 +106,10 @@ public class AnomalyDetectorListener {
 
             try {
                 String alertJson = objectMapper.writeValueAsString(alert);
+                // Publish to Redis Pub/Sub (existing)
                 stringRedisTemplate.convertAndSend("alerts", alertJson);
+                // Also push to list for SSE polling
+                stringRedisTemplate.opsForList().rightPush("alerts:queue", alertJson);
                 log.info("Published anomaly alert to Redis Pub/Sub channel 'alerts'");
             } catch (Exception e) {
                 log.error("Failed to publish anomaly alert for tx {}", transactionId, e);

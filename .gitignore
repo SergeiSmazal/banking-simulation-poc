@@ -21,5 +21,14 @@ dist/
 # System
 .DS_Store
 
-# Hidden files
+# Frontend
+frontend/node_modules/
+frontend/dist/
+frontend/*.local
+
+# Lock files
+package-lock.json
+frontend/package-lock.json
+
+# Documentation (internal)
 IMPLEMENTATION_PLAN.md
