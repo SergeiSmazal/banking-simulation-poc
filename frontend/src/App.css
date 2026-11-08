@@ -1,0 +1,33 @@
+.app {
+  display: flex;
+  min-height: 100vh;
+  flex-direction: column;
+}
+
+.nav {
+  display: flex;
+  gap: 1rem;
+  padding: 1rem 2rem;
+  background: #fff;
+  border-bottom: 1px solid #e1e5eb;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.nav a {
+  text-decoration: none;
+  color: #555;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  transition: background 0.2s;
+}
+
+.nav a:hover {
+  background: #f0f2f5;
+}
+
+.nav a.active {
+  background: #1890ff;
+  color: #fff;
+}
