@@ -7,9 +7,10 @@ import com.fdb.frankfurt.model.Transaction;
 import com.fdb.frankfurt.repository.AccountRepository;
 import com.fdb.frankfurt.repository.TransactionRepository;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.redisson.api.RLock;
 import org.redisson.api.RedissonClient;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.support.KafkaHeaders;
@@ -28,8 +29,9 @@ import java.util.concurrent.TimeUnit;
 
 @Service
 @RequiredArgsConstructor
-@Slf4j
 public class TransactionProcessorListener {
+
+    private static final Logger log = LoggerFactory.getLogger(TransactionProcessorListener.class);
 
     private final AccountRepository accountRepository;
     private final TransactionRepository transactionRepository;
