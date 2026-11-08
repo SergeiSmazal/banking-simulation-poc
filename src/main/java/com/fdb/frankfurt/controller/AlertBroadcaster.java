@@ -1,45 +1,46 @@
 package com.fdb.frankfurt.controller;
 
+import com.fdb.frankfurt.dto.AnomalyAlert;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
-import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 @Component
 public class AlertBroadcaster {
 
-    private final CopyOnWriteArrayList<String> subscribers = new CopyOnWriteArrayList<>();
-    private final AtomicBoolean active = new AtomicBoolean(false);
+    private final StringRedisTemplate stringRedisTemplate;
+    private final ObjectMapper objectMapper;
+    private final ConcurrentLinkedQueue<String> alertQueue = new ConcurrentLinkedQueue<>();
 
-    public void subscribe(String subscriberId) {
-        subscribers.add(subscriberId);
-        active.set(true);
+    public AlertBroadcaster(StringRedisTemplate stringRedisTemplate, ObjectMapper objectMapper) {
+        this.stringRedisTemplate = stringRedisTemplate;
+        this.objectMapper = objectMapper;
     }
 
-    public void unsubscribe(String subscriberId) {
-        subscribers.remove(subscriberId);
-        if (subscribers.isEmpty()) {
-            active.set(false);
-        }
-    }
-
-    public void broadcast(String message) {
-        subscribers.forEach(id -> {
-            // In production, this would push to a real WebSocket session
-        });
+    public String pollAlert() {
+        String alert = alertQueue.poll();
+        return alert != null ? alert : "{}";
     }
 
     @Scheduled(fixedRate = 1000)
     public void pollAlerts() {
-        // Simplified polling - in production, use a proper Redis subscription
-    }
-
-    public int subscriberCount() {
-        return subscribers.size();
-    }
-
-    public boolean isActive() {
-        return active.get();
+        try {
+            // Read from Redis Pub/Sub (using a list as a simple queue)
+            List<String> alerts = new ArrayList<>();
+            String alert;
+            while ((alert = stringRedisTemplate.opsForList().leftPop("alerts:queue")) != null) {
+                alerts.add(alert);
+            }
+            if (!alerts.isEmpty()) {
+                alerts.forEach(alertQueue::add);
+            }
+        } catch (Exception e) {
+            // Ignore - Redis might not be available
+        }
     }
 }

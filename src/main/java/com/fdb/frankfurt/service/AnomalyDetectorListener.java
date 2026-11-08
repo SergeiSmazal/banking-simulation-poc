@@ -106,7 +106,10 @@ public class AnomalyDetectorListener {
 
             try {
                 String alertJson = objectMapper.writeValueAsString(alert);
+                // Publish to Redis Pub/Sub (existing)
                 stringRedisTemplate.convertAndSend("alerts", alertJson);
+                // Also push to list for SSE polling
+                stringRedisTemplate.opsForList().rightPush("alerts:queue", alertJson);
                 log.info("Published anomaly alert to Redis Pub/Sub channel 'alerts'");
             } catch (Exception e) {
                 log.error("Failed to publish anomaly alert for tx {}", transactionId, e);
