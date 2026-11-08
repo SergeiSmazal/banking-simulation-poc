@@ -48,8 +48,8 @@ export default function Dashboard() {
 
   const checkSimulatorStatus = async () => {
     try {
-      const res = await simulatorApi.getStatus()
-      setSimulatorRunning(res.data === 'RUNNING')
+      const status = await simulatorApi.getStatus()
+      setSimulatorRunning(status === 'RUNNING')
     } catch {
       setSimulatorRunning(false)
     }

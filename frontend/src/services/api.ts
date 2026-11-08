@@ -28,19 +28,28 @@ export interface TransferRequest {
 }
 
 export const accountsApi = {
-  getAll: () => api.get<Account[]>('/accounts').catch(() => [] as Account[]),
+  getAll: async () => {
+    const response = await api.get<Account[]>('/accounts').catch(() => ({ data: [] as Account[] }))
+    return response.data
+  },
 }
 
 export const transfersApi = {
   create: (request: TransferRequest) => api.post('/transfer', request),
-  getHistory: () => api.get<Transaction[]>('/transactions/history').catch(() => [] as Transaction[]),
+  getHistory: async () => {
+    const response = await api.get<Transaction[]>('/transactions/history').catch(() => ({ data: [] as Transaction[] }))
+    return response.data
+  },
 }
 
 export const simulatorApi = {
   start: () => api.post('/simulator/start'),
   stop: () => api.post('/simulator/stop'),
   toggle: () => api.post('/simulator/toggle'),
-  getStatus: () => api.get<string>('/simulator/status'),
+  getStatus: async () => {
+    const response = await api.get<string>('/simulator/status').catch(() => ({ data: 'STOPPED' }))
+    return response.data
+  },
 }
 
 export default api

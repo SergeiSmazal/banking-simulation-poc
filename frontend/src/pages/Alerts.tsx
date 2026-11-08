@@ -1,5 +1,4 @@
 import { useEffect, useState } from 'react'
-import { io, Socket } from 'socket.io-client'
 import './Alerts.css'
 
 interface AnomalyAlert {
@@ -12,17 +11,26 @@ interface AnomalyAlert {
 
 export default function Alerts() {
   const [alerts, setAlerts] = useState<AnomalyAlert[]>([])
-  const [socket, setSocket] = useState<Socket | null>(null)
 
   useEffect(() => {
-    const newSocket = io()
-    newSocket.on('anomaly', (alert: AnomalyAlert) => {
-      setAlerts(prev => [alert, ...prev].slice(0, 50))
-    })
+    const eventSource = new EventSource('/api/alerts/stream')
 
-    setSocket(newSocket)
+    eventSource.onmessage = (event) => {
+      try {
+        const alert = JSON.parse(event.data) as AnomalyAlert
+        setAlerts(prev => [alert, ...prev].slice(0, 50))
+      } catch (e) {
+        console.error('Failed to parse alert:', e)
+      }
+    }
+
+    eventSource.onerror = (err) => {
+      console.error('SSE error:', err)
+      eventSource.close()
+    }
+
     return () => {
-      newSocket.disconnect()
+      eventSource.close()
     }
   }, [])
 

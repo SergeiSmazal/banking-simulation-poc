@@ -1,0 +1,48 @@
+.alerts-page {
+  padding: 2rem;
+}
+
+.alerts-list {
+  margin-top: 1rem;
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  max-height: 600px;
+  overflow-y: auto;
+}
+
+.alert-item {
+  display: flex;
+  gap: 1rem;
+  padding: 1rem;
+  border-bottom: 1px solid #f0f0f0;
+  align-items: center;
+}
+
+.alert-item:last-child {
+  border-bottom: none;
+}
+
+.alert-timestamp {
+  font-family: monospace;
+  color: #666;
+  min-width: 80px;
+}
+
+.alert-reason {
+  flex: 1;
+  color: #333;
+}
+
+.alert-amount {
+  font-weight: 600;
+  color: #ff4d4f;
+  min-width: 100px;
+  text-align: right;
+}
+
+.no-alerts {
+  padding: 3rem;
+  text-align: center;
+  color: #999;
+}
