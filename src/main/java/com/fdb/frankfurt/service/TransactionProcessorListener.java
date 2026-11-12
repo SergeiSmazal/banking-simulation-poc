@@ -26,6 +26,7 @@ import java.time.OffsetDateTime;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicLong;
 
 @Service
 @RequiredArgsConstructor
@@ -38,6 +39,7 @@ public class TransactionProcessorListener {
     private final StringRedisTemplate stringRedisTemplate;
     private final RedissonClient redissonClient;
     private final ObjectMapper objectMapper;
+    private final MetricsService metricsService;
 
     @KafkaListener(topics = "transactions", groupId = "fdb-core-group")
     @SuppressWarnings("null")
@@ -116,7 +118,20 @@ public class TransactionProcessorListener {
             }
 
             // 3. Process transaction within DB transaction and cache-aside balance check
-            processTransferWithCacheAside(transactionId, fromId, toId, amount);
+            long startNanos = System.nanoTime();
+            AtomicLong lastAmount = new AtomicLong(0);
+            try {
+                processTransferWithCacheAside(transactionId, fromId, toId, amount);
+                long elapsed = System.nanoTime() - startNanos;
+                metricsService.recordProcessing(elapsed, true);
+                metricsService.recordLastTransferAmount(amount
+                        .setScale(0, BigDecimal.ROUND_HALF_UP)
+                        .longValue());
+            } catch (RuntimeException e) {
+                long elapsed = System.nanoTime() - startNanos;
+                metricsService.recordProcessing(elapsed, false);
+                throw e;
+            }
 
             // Successfully processed, commit offset
             if (acknowledgment != null) {
