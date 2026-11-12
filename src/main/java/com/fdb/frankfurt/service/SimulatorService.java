@@ -3,6 +3,7 @@ package com.fdb.frankfurt.service;
 import com.fdb.frankfurt.dto.TransferRequest;
 import com.fdb.frankfurt.model.Account;
 import com.fdb.frankfurt.repository.AccountRepository;
+import com.fdb.frankfurt.service.MetricsService;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -79,8 +80,14 @@ public class SimulatorService {
 
         try {
             transferService.createTransfer(request);
+            metricsService.setSimulatorActive(true);
+            metricsService.recordLastTransferAmount(amount
+                    .multiply(BigDecimal.valueOf(100))
+                    .setScale(0, RoundingMode.HALF_UP)
+                    .longValue());
             log.info("SIM: {} -> {} : {}", from.getOwnerName(), to.getOwnerName(), amount);
         } catch (RuntimeException e) {
+            metricsService.setSimulatorActive(true);
             log.warn("SIM: skipped transfer {} -> {}: {}", from.getId(), to.getId(), e.getMessage());
         }
     }

@@ -7,6 +7,7 @@ import com.fdb.frankfurt.model.Transaction;
 import com.fdb.frankfurt.repository.AccountRepository;
 import com.fdb.frankfurt.repository.OutboxRepository;
 import com.fdb.frankfurt.repository.TransactionRepository;
+import com.fdb.frankfurt.service.MetricsService;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -26,12 +27,14 @@ public class TransferService {
     private final OutboxRepository outboxRepository;
     private final StringRedisTemplate stringRedisTemplate;
     private final ObjectMapper objectMapper;
+    private final MetricsService metricsService;
 
     @SneakyThrows
     @Transactional
     @SuppressWarnings("null")
     public void createTransfer(@NonNull TransferRequest request) {
         // 0. Rate limiting check
+        metricsService.recordTransferReceived();
         String rateLimitKey = "rate_limit:" + request.getFromAccountId();
         Long count = stringRedisTemplate.opsForValue().increment(rateLimitKey);
         if (count != null && count == 1) {

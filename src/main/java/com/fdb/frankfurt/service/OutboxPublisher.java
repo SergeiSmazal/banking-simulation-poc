@@ -2,6 +2,7 @@ package com.fdb.frankfurt.service;
 
 import com.fdb.frankfurt.model.OutboxEvent;
 import com.fdb.frankfurt.repository.OutboxRepository;
+import com.fdb.frankfurt.service.MetricsService;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -21,6 +22,7 @@ public class OutboxPublisher {
 
     private final OutboxRepository outboxRepository;
     private final KafkaTemplate<String, String> kafkaTemplate;
+    private final MetricsService metricsService;
 
     @Scheduled(fixedDelay = 1000)
     @Transactional
@@ -41,6 +43,7 @@ public class OutboxPublisher {
                             if (ex == null) {
                                 event.setProcessedAt(OffsetDateTime.now());
                                 outboxRepository.save(event);
+                                metricsService.recordOutboxPublished();
                                 log.info("Event published successfully: {}", event.getId());
                             } else {
                                 log.error("Failed to publish event: {}", event.getId(), ex);

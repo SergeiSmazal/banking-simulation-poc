@@ -42,7 +42,18 @@ management:
   endpoints:
     web:
       exposure:
-        include: health,info
+        include: health,info,prometheus,metrics,prometheus,metrics
   endpoint:
     health:
       show-details: always
+
+  # 10. Observability: Micrometer + Prometheus metrics
+  metrics:
+    export:
+      prometheus:
+        enabled: true
+    tags:
+      application: ${spring.application.name}
+  distribution:
+    percentiles:
+      transfer.processing: 50,95,99
